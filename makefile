@@ -1,6 +1,6 @@
 SRCS  := $(wildcard *.c)
 TARGET := $(SRCS:.c=.out)
-LFLAG := -L lib -ltftp
+LFLAG := -L lib -lpthread -ltftp
 CFLAG := -I include
 
 all : ${TARGET} 
