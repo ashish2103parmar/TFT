@@ -5,7 +5,7 @@
 #ifndef TFTP_TYPES
 #define TFTP_TYPES 0
 
-#pragma pack(1);
+#pragma pack(1)
 
 #define error_msg(str)  printf("Err: %s\n", str)
 #define tostr(str) #str
