@@ -62,7 +62,7 @@ int send_packet(int sock_fd, void *buff, unsigned int bsize, struct sockaddr_in 
 {
 	int tmp;
 	if (tmp = sendto(sock_fd, buff, bsize, 0, (struct sockaddr *)addr, sizeof (struct sockaddr_in)) == -1)
-		perror("recv");
+		perror("send");
 	return tmp;
 }
 

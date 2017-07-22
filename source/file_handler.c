@@ -44,9 +44,21 @@ int openfile(char *fname, int rdonly)
 	return fd;
 }
 
+int readfile(int fd, uint8 *data, off_t *offset)
+{
+	int size = pread(fd, (void *)data, DATA_SIZE, *offset);
+	if (size == -1)
+	{
+		size = get_ferrtype();
+		perror("pread");
+	}
+	return size;
+}
+
+/*
 int readfile(int fd, uint8 *data)
 {
-	int size = read(fd, (void *)data, DSIZE);
+	int size = read(fd, (void *)data, DATA_SIZE);
 	if (size == -1)
 	{
 		size = get_ferrtype();
@@ -54,6 +66,7 @@ int readfile(int fd, uint8 *data)
 	}
 	return size;
 }
+*/
 
 int writefile(int fd, uint8 *data, uint32 dsize)
 {
@@ -64,4 +77,36 @@ int writefile(int fd, uint8 *data, uint32 dsize)
 		perror("write");
 	}
 	return size;
+}
+
+int write_netascii(int fd, uint8 *data, uint32 dsize)
+{
+	static int pflag = 0;
+	int idx, pdx = 0, size = 0;
+	for (idx = 0; idx < dsize; idx++)
+	{
+		if ( pflag || data[idx] = '\r')
+		{
+			if (pflag)
+				pflag = 0;
+			else if (-1 == write(fd, (void *)data + pdx, idx++ - pdx))
+			{
+				size = get_ferrtype();
+				perror("write");
+				return size;
+			}
+			size += idx - pdx -1;
+			if (idx == dsize)
+				pflag == 1;
+			else if (data[idx] == '\0')
+				data[idx] == '\r';
+			pdx = idx;
+		}
+	}
+	if (-1 == write(fd, (void *)data + pdx, idx - pdx))
+	{
+		size = get_ferrtype();
+		perror("write");
+	}
+	return size + idx - pdx;
 }

@@ -9,7 +9,7 @@
 
 #define error_msg(str)  printf("Err: %s\n", str)
 #define tostr(str) #str
-#define DSIZE 512
+#define DATA_SIZE 512
 typedef unsigned long long uint64;
 typedef unsigned int uint32;
 typedef unsigned short uint16;
@@ -48,7 +48,7 @@ typedef struct
 	uint16 opcode;
 	union
 	{
-		uint8 buff[2 + DSIZE];
+		uint8 buff[2 + DATA_SIZE];
 		struct
 		{
 			union
@@ -56,7 +56,7 @@ typedef struct
 				uint16 blk_no;
 				uint16 err_code;
 			};
-			uint8 data[DSIZE];
+			uint8 data[DATA_SIZE];
 		};
 	};
 } tftp_pkt;
