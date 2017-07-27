@@ -22,7 +22,7 @@ int bind_socket(int sock_fd, char *ip_addr, unsigned short port)
 	if (bind(sock_fd, (struct sockaddr *)addr, sizeof (struct sockaddr_in)))
 	{
 		perror("socket");
-		return 0;
+		_exit(2);
 	}
 	return 1;
 }

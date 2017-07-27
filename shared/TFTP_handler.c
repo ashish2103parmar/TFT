@@ -94,10 +94,6 @@ int wait_for_ack(int sock_fd, struct sockaddr_in *addr, int blk_no)
 				free(pkt);
 				return 1;
 			}
-			else if (pkt->opcode == T_ERROR)
-			{
-				print_err_packet(pkt);
-			}
 		}		
 	}
 	return 0;
@@ -202,7 +198,7 @@ int sender(int sock_fd, char *fname, struct sockaddr_in *addr, int mode)
 		}
 		if (idx == 3)
 			return 0;
-		if (bytes < 512)
+		if (bytes < 516)
 		{
 			close(fd);
 			return 1;

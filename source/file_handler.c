@@ -31,9 +31,9 @@ int get_ferrtype()
 int openfile(char *fname, int rdonly)
 {	
 	int fd;
-	if (rdonly)
+	if (rdonly == 1)
 		fd = open(fname, O_RDONLY);
-	else
+	else 
 		fd = open(fname, O_WRONLY | O_CREAT | O_EXCL, file_mode);
 
 	if (fd == -1)
@@ -85,7 +85,7 @@ int write_netascii(int fd, uint8 *data, uint32 dsize)
 	int idx, pdx = 0, size = 0;
 	for (idx = 0; idx < dsize; idx++)
 	{
-		if ( pflag || data[idx] = '\r')
+		if ( pflag || data[idx] == '\r')
 		{
 			if (pflag)
 				pflag = 0;
