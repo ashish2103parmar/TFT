@@ -4,7 +4,7 @@
 #include <TFTP_handler.h>
 
 
-#define IPADDR "127.0.0.1"
+#define IPADDR "192.168.43.150"
 #define TFTP_PORT 6900
 
 int main()
