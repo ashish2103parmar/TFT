@@ -170,7 +170,7 @@ int sender(int sock_fd, char *fname, struct sockaddr_in *addr, int mode)
 	int bytes;
 	if (fd < 0)
 	{
-		send_err_packet(sock_fd, addr, fd * -1 - 1, "Couldn't poen file\r\n");
+		send_err_packet(sock_fd, addr, fd * -1 - 1, "Couldn't open file\r\n");
 		return 0;
 	}
 	tftp_pkt pkt;
@@ -190,14 +190,21 @@ int sender(int sock_fd, char *fname, struct sockaddr_in *addr, int mode)
 
 		if (0 > send_packet(sock_fd, &pkt, 4 + bytes, addr))
 			return 0;
+		else
+			printf("Sending block %d\t\t\t\t", pkt.blk_no);
 		int idx;
 		for (idx = 0; idx < 3; idx++)
 		{
 			if (wait_for_ack(sock_fd, addr, pkt.blk_no))
+			{
+				printf("ACK %d received\n", pkt.blk_no);
 				break;
+			}
 			else
 				if (0 > send_packet(sock_fd, &pkt, 4 + bytes, addr))
 					return 0;
+				else
+					printf("Timed out\nResending block %d\t\t\t\t", pkt.blk_no);
 
 		}
 		if (idx == 3)
@@ -212,12 +219,11 @@ int sender(int sock_fd, char *fname, struct sockaddr_in *addr, int mode)
 	return 0;
 }
 
-unsigned int receiver(int sock_fd, char *fname, struct sockaddr_in *addr, int mode)
+unsigned int receiver(int sock_fd, int fd, struct sockaddr_in *addr, int mode)
 {
-	int fd = openfile(fname, 0);
 	if (fd < 0)
 	{
-		send_err_packet(sock_fd, addr, fd * -1 - 1, "Couldn't poen file\r\n");
+		send_err_packet(sock_fd, addr, fd * -1 - 1, "Couldn't open file\r\n");
 		return 0;
 	}
 	tftp_pkt pkt;
@@ -250,12 +256,12 @@ unsigned int receiver(int sock_fd, char *fname, struct sockaddr_in *addr, int mo
 					size += bytes;
 					printf("Received block %d\t\t\t\t", blk_no);
 
-					send_ack(sock_fd, addr, blk_no++);
-					printf("ACK %d sent\n", blk_no - 1);
+					send_ack(sock_fd, addr, blk_no);
+					printf("ACK %d sent\n", blk_no++);
 					if (bytes < 512)
 						break;
 				}
-				else if (pkt.blk_no == blk_no - 1)
+				else if (pkt.blk_no == blk_no - 1 && blk_no - 1)
 				{
 					send_ack(sock_fd, addr, blk_no - 1);
 					printf("resending ACK %d\n", blk_no - 1);
@@ -263,7 +269,8 @@ unsigned int receiver(int sock_fd, char *fname, struct sockaddr_in *addr, int mo
 				else
 				{
 					send_err_packet(sock_fd, addr, ILLEGAL_TFTP_OPERATION, "invalid cmd\r\n");
-					return 0;
+					if (blk_no)
+						return 0;
 				}
 			}
 			else if (pkt.opcode == T_ERROR)
@@ -292,16 +299,25 @@ int process_rq(int sock_fd, struct sockaddr_in *addr, tftp_pkt *pkt)
 	{
 		char *fname = pkt->buff;
 		char *mode = pkt->buff + strlen(fname) + 1;
-		//while (mode[idx]) mode[idx++] = toupper(mode[idx]);
+		/*while (mode[idx] != '\0') 
+		{
+			mode[idx] = toupper(mode[idx]);
+			idx++;
+		}*/
 		return sender(sock_fd, fname, addr, !strcmp(mode, "NETASCII"));
 	}
 	else if (pkt->opcode == T_WRQ)
 	{
 		char *fname = pkt->buff;
 		char *mode = pkt->buff + strlen(fname) + 1;
-		//while (mode[idx]) mode[idx++] = toupper(mode[idx]);
+		/*while (mode[idx] != '\0') 
+		{
+			mode[idx] = toupper(mode[idx]);
+			idx++;
+		}*/
 		send_ack(sock_fd, addr, 0);
-		unsigned int size = receiver(sock_fd, fname, addr, !strcmp(mode, "netascii"));
+		int fd = openfile(fname, 0);
+		unsigned int size = receiver(sock_fd, fd, addr, !strcmp(mode, "NETASCII"));
 		if (size)
 			printf("wrote %d bytes to file %s\n", size, fname);
 		else

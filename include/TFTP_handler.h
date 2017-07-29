@@ -12,7 +12,8 @@ int send_rq(int sock_fd, struct sockaddr_in *addr, char *fname, char *mode, int 
 void insert_char(uint8 *data, uint32 idx, uint8 chr);
 int to_netascii(uint8 *data, int size, off_t *offset);
 int sender(int sock_fd, char *fname, struct sockaddr_in *addr, int mode);
-unsigned int receiver(int sock_fd, char *fname, struct sockaddr_in *addr, int mode);
+//unsigned int receiver(int sock_fd, char *fname, struct sockaddr_in *addr, int mode);
+unsigned int receiver(int sock_fd, int fd, struct sockaddr_in *addr, int mode);
 int process_rq(int sock_fd, struct sockaddr_in *addr, tftp_pkt *pkt);
 	
 #endif

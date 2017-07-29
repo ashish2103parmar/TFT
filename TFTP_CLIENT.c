@@ -4,18 +4,20 @@
 #include <TFTP_handler.h>
 
 
-#define IPADDR "192.168.43.202"
+#define IPADDR "127.0.0.1"
 #define TFTP_PORT 6900
+#define TRY_LIMIT 3
 
 int main()
 {
 	int sock_fd = create_socket();
-	tftp_pkt buff;
 	chdir("shared1/");
 	struct sockaddr_in addr, addr1;
 	int idx;
 	set_addr(&addr, IPADDR, TFTP_PORT);
 	char buff[100], *arg, mode[10];
+	strcpy(mode, "octect");
+	unsigned int size;
 	while (1)
 	{
 		printf("TFTP>");
@@ -30,35 +32,68 @@ int main()
 				arg = buff + idx + 1;
 				break;
 			}
+			idx++;
 		}
-		if (!strcmp(buff, "quit"))
+		if (!strcmp(buff, "bye"))
 		{
 			return 0;
 		}
 		else if (!strcmp(buff, "put"))
 		{
-			send_rq(sock_fd, &addr, "TFTP_handler.c", "octet", T_WRQ);
-			while (!wait_for_ack(sock_fd, &addr1, 0));
+			send_rq(sock_fd, &addr, arg, mode, T_WRQ);
+			for (idx = 0; idx < TRY_LIMIT; idx++) 
 			{
-			unsigned int size = sender(sock_fd, "TFTP_handler.c", &addr1, 0);
-			if (size > 0)
-				printf("File sent %s\n", arg);
-			else
-				printf("error\n");
+				if (wait_for_ack(sock_fd, &addr1, 0))
+				{
+					size = sender(sock_fd, arg, &addr1, !strcmp(mode, "netascii"));
+					if (size > 0)
+						printf("File sent %s\n", arg);
+					else
+						printf("Transfer failed\n");
+					break;
+				}
+				else
+				{	
+					printf("Failed... trying again\n");
+					send_rq(sock_fd, &addr, arg, mode, T_WRQ);
+				}
 			}
-			break;
 		}
 		else if (!strcmp(buff, "get"))
 		{
+			int fd = open(arg, O_WRONLY | O_CREAT);
+			if (fd < 0)
+				printf("coundnt open/create file\n");
+			else
+			{
+				send_rq(sock_fd, &addr, arg, mode, T_RRQ);
+				size = receiver(sock_fd, fd, &addr1, !strcmp(mode, "netascii"));
+				if (size > 0)
+					printf("File %s received\n%u bytes received\n", arg, size);
+				else
+					printf("Transfer failed\n");
+			}
 		}
 		else if (!strcmp(buff, "connect"))
 		{
+			if (set_addr(&addr, arg, TFTP_PORT))
+				printf("IP address %s set\n", arg);
+			else
+				printf("invalid address\n");
 		}
 		else if (!strcmp(buff, "mode"))
 		{
-			if (!strcmp(mode, ))
+			if (!strcmp(arg, "netascii") || !strcmp(arg, "octect"))
+			{
+				strcpy(mode, arg);	
+				printf("%s mode selected\n", arg);
+			}
+			else
+				printf("invalid mode\n");
 		}
 		else 
 			printf("Invalid command\n");
+		*buff = '\0';
+		arg = NULL;
 	}
 }

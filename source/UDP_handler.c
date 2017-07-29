@@ -43,7 +43,8 @@ int set_addr(struct sockaddr_in *addr, char *ip_addr, unsigned short port)
 	if (ip_addr && port)
 	{
 		((struct sockaddr_in *)addr)->sin_family = AF_INET;
-		((struct sockaddr_in *)addr)->sin_addr.s_addr = inet_addr(ip_addr);
+		if ((((struct sockaddr_in *)addr)->sin_addr.s_addr = inet_addr(ip_addr)) == INADDR_NONE)
+			return 0;
 		((struct sockaddr_in *)addr)->sin_port = htons(port);
 		return 1;
 	}

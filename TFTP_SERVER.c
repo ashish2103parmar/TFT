@@ -4,7 +4,7 @@
 #include <TFTP_handler.h>
 
 
-#define IPADDR "192.168.43.150"
+#define IPADDR "127.0.0.1"
 #define TFTP_PORT 6900
 
 int main()
@@ -14,6 +14,8 @@ int main()
 	bind_socket(sock_fd, IPADDR, TFTP_PORT);
 	tftp_pkt buff;
 	chdir("shared/");
+	char *rip;
+	unsigned short rport;
 	printf("Server started at %s:%d\n", IPADDR, TFTP_PORT);
 	struct sockaddr_in addr;
 	while (1)
@@ -30,9 +32,11 @@ int main()
 					sock_fd = create_socket();
 					bind_socket(sock_fd, IPADDR, port++);
 					if (!process_rq(sock_fd, &addr, &buff))
-						printf("failed\n");
+						printf("Request failed\n");
 					_exit(5);
 			}
 		}
+		get_addr(&addr, &rip, &rport);
+		printf("Connected to %s : %d\n", rip, rport);
 	}
 }
